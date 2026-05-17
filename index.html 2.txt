@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beef Cattle Growth Derivative Simulator</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <style>
+        body { background-color: #0b1329; color: #f4f5f6; }
+    </style>
+</head>
+<body class="p-4 md:p-8 font-sans">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="bg-[#1c2541] border border-emerald-500/30 rounded-xl p-6 mb-6 flex flex-col md:flex-row justify-between items-start md:items-center shadow-lg">
+            <div>
+                <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest block mb-1">SFH: Animal Husbandry Technology</span>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-white tracking-tight">Beef Cattle Growth Derivative Simulator</h1>
+                <p class="text-sm text-gray-400 mt-1">Analyzing Cumulative Weight $f(x)$ and Growth Rate Derivative $f'(x)$ in Malaysian Feedlot Systems</p>
+            </div>
+            <div class="mt-4 md:mt-0 bg-[#0b1329] border border-gray-700 rounded-lg p-3 text-right">
+                <span class="inline-flex items-center text-xs text-emerald-400 font-semibold mb-1">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 mr-2 animate-ping"></span> Target Context:
+                </span>
+                <p class="text-sm font-bold text-white">DVS Malaysia & MARDI Standards</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            
+            <div class="space-y-6">
+                <div class="bg-[#1c2541] rounded-xl p-6 shadow-md border border-gray-800">
+                    <h2 class="text-lg font-bold text-white mb-3 flex items-center gap-2">
+                        📖 The Bioscience Scenario
+                    </h2>
+                    <p class="text-sm text-gray-300 leading-relaxed mb-3">
+                        Dalam pengeluaran lembu daging intensif di Malaysia (cth: baka Kedah-Kelantan Cross atau Brahman), corak pertumbuhan adalah tidak linear dan mengikut lengkung logistik sigmoidal (S-shaped). Memahami kadar perubahan segera—iaitu <strong>Pembezaan Pertama $f'(x)$</strong>—adalah sangat kritikal.
+                    </p>
+                    <p class="text-sm text-gray-300 leading-relaxed">
+                        Nilai derivatif ini mewakili <strong>kadar pertambahan berat harian (Average Daily Gain - ADG dalam kg/hari)</strong>. Mengesan titik puncak pertumbuhan harian ini penting bagi memastikan kecekapan penukaran makanan (FCR) yang optimum sebelum kos makanan mengatasi kadar tumbesaran daging.
+                    </p>
+                </div>
+
+                <div class="bg-[#1c2541] rounded-xl p-6 shadow-md border border-gray-800">
+                    <h2 class="text-lg font-bold text-white mb-4">🧮 Mathematical Growth Model</h2>
+                    
+                    <div class="mb-4 bg-[#0b1329] p-4 rounded-lg border border-gray-800">
+                        <span class="text-xs text-emerald-400 font-bold block mb-2">Cumulative Growth $f(x)$:</span>
+                        <div class="text-center py-3 bg-[#111c44] rounded text-xl text-white">
+                            $$f(x) = \frac{W_{max}}{1 + \beta \cdot e^{-k \cdot \eta \cdot x}}$$
+                        </div>
+                    </div>
+
+                    <div class="bg-[#0b1329] p-4 rounded-lg border border-gray-800">
+                        <span class="text-xs text-emerald-400 font-bold block mb-2">Derivative $f'(x)$ (Daily Growth Rate / ADG):</span>
+                        <div class="text-center py-3 bg-[#111c44] rounded text-lg text-white">
+                            $$f'(x) = \frac{W_{max} \cdot \beta \cdot (k \cdot \eta) \cdot e^{-k \cdot \eta \cdot x}}{(1 + \beta \cdot e^{-k \cdot \eta \cdot x})^2}$$
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2 text-[11px] text-gray-400 mt-4 border-t border-gray-800 pt-3">
+                        <div><strong>$x$</strong> = Hari Ternakan (0 - 180 hari)</div>
+                        <div><strong>$W_{max}$</strong> = Sasaran berat matang (500 kg)</div>
+                        <div><strong>$\beta$</strong> = Parameter skala awal (fixed: 12)</div>
+                        <div><strong>$k$</strong> = Pekali pertumbuhan genetik (0.025)</div>
+                        <div><strong>$\eta$</strong> = Indeks kecekapan persekitaran</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 space-y-6">
+                <div class="bg-[#1c2541] rounded-xl p-6 shadow-md border border-gray-800">
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="daySlider" class="text-sm font-semibold text-gray-300">Interactive Day Selector:</label>
+                        <span class="bg-emerald-500/20 text-emerald-400 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/30">
+                            Hari ke-<span id="dayValue">90</span>
+                        </span>
+                    </div>
+                    <input type="range" id="daySlider" min="0" max="180" value="90" class="w-full accent-emerald-500 bg-gray-800 h-2 rounded-lg appearance-none cursor-pointer mb-6">
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-gray-800">
+                            <span class="text-xs text-gray-400 font-medium uppercase">Cumulative Weight $f(x)$</span>
+                            <div class="text-2xl font-black text-indigo-400 mt-1"><span id="weightVal">250</span> kg</div>
+                            <span class="text-[11px] text-gray-500 block mt-1">Anggaran berat fizikal semasa.</span>
+                        </div>
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-emerald-500/20">
+                            <span class="text-xs text-emerald-400 font-medium uppercase">Growth Speed $f'(x)$</span>
+                            <div class="text-2xl font-black text-emerald-400 mt-1"><span id="adgVal">1.25</span> kg/hari</div>
+                            <span class="text-[11px] text-gray-400 block mt-1">Kadar ADG semasa titik ini.</span>
+                        </div>
+                        <div class="bg-[#0b1329] p-4 rounded-xl border border-gray-800">
+                            <span class="text-xs text-gray-400 font-medium uppercase">Husbandry Status</span>
+                            <div class="text-md font-bold text-amber-400 mt-2"><span id="phaseVal">Fasa Pertumbuhan</span></div>
+                            <span class="text-[11px] text-gray-500 block mt-1">Status pengurusan makanan.</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-[#111c44] border-l-4 border-emerald-500 p-4 rounded-r-xl">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider block mb-1">💡 Husbandry Insight & Action (Layman's Terms)</span>
+                        <p id="laymanText" class="text-xs text-gray-300 leading-relaxed">Sila gerakkan slider hari untuk melihat ulasan teknikal.</p>
+                    </div>
+                </div>
+
+                <div class="bg-[#1c2541] rounded-xl p-6 shadow-md border border-gray-800">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-md font-bold text-white">🟢 Live Growth Trajectory</h3>
+                        <p class="text-xs text-gray-400">Klik mana-mana titik pada graf atau guna slider di atas untuk mengira nilai derivatif!</p>
+                    </div>
+                    <div class="relative h-72 w-full">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1c2541] rounded-xl p-6 shadow-md border border-gray-800 mb-6">
+            <h3 class="text-md font-bold text-white mb-4">🎛️ Environmental & Husbandry Factors (Simulation Adjustment)</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-300">Target Weight Asymptote ($W_{max}$)</span>
+                        <span class="text-amber-400 font-bold"><span id="wmaxLabel">500</span> kg</span>
+                    </div>
+                    <input type="range" id="wmaxSlider" min="350" max="700" value="500" step="10" class="w-full accent-amber-500 bg-gray-800 h-1.5 rounded-lg">
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-300">Genetic Growth Coefficient ($k$)</span>
+                        <span class="text-amber-400 font-bold"><span id="kLabel">0.025</span></span>
+                    </div>
+                    <input type="range" id="kSlider" min="0.015" max="0.040" value="0.025" step="0.001" class="w-full accent-amber-500 bg-gray-800 h-1.5 rounded-lg">
+                </div>
+                <div>
+                    <div class="flex justify-between text-xs mb-1">
+                        <span class="text-gray-300">Housing Efficiency & Climate Index ($\eta$)</span>
+                        <span class="text-amber-400 font-bold"><span id="etaLabel">1.00</span></span>
+                    </div>
+                    <input type="range" id="etaSlider" min="0.70" max="1.20" value="1.00" step="0.05" class="w-full accent-amber-500 bg-gray-800 h-1.5 rounded-lg">
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-[#1c2541] rounded-xl p-6 shadow-md border border-gray-800 mb-6">
+            <h2 class="text-xl font-extrabold text-white mb-6 tracking-tight">Deep-Dive: How Calculus Solves Feedlot Economics</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6 border-b border-gray-800 pb-6 text-sm">
+                <div>
+                    <h3 class="font-bold text-white mb-2 flex items-center gap-2">1️⃣ The Biological Peak</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Puncak bagi lengkung derivatif $f'(x)$ (ADG) berlaku pada **titik infleksi** lengkung berat kumulatif $f(x)$. Dari segi matematik, ini adalah titik di mana terbitan kedua bersamaan dengan sifar: $f''(x) = 0$. Secara praktikalnya, ini menandakan kecekapan pertumbuhan biologi maksima bagi lembu potong. Selepas hari ini, kadar pengumpulan berat mula menurun, dan tenaga makanan harian lebih banyak disalurkan untuk penyelenggaraan tubuh berbanding pembentukan tisu otot baharu.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white mb-2 flex items-center gap-2">2️⃣ The Microclimate Equation</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Di kawasan tropika Malaysia, suhu persekitaran fidlot kerap melebihi 30°C. Di dalam simulator, **Indeks Kecekapan Persekitaran ($\eta$)** mewakili parameter mikroklimat ini. Dalam sistem perumahan terbuka (open house), lembu sering mengalami tekanan haba (heat stress) yang memperlahankan proses enzim metabolik, mengurangkan pengambilan makanan, seterusnya anjakan titik puncak pertumbuhan ke kanan dan merendahkan nilai ADG maksima ($\eta \approx 0.80$). Tetapan $\eta = 1.05$ mencerminkan pengurusan sistem kandang berbumbung dengan kipas atau ventilasi optimum yang mengurangkan tekanan haba.
+                    </p>
+                </div>
+                <div>
+                    <h3 class="font-bold text-white mb-2 flex items-center gap-2">3️⃣ Deciding the Harvest Date</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed">
+                        Lembu daging dalam sistem fidlot intensif di Malaysia kebiasaannya dituai (dijual/disembelih) apabila berat mencapai had pasaran komersial (sekitar 400-500 kg). Dengan merujuk silang kos makanan harian dengan nilai penambahan berat daging kumulatif melalui lengkung derivatif, penternak boleh mengesan dengan tepat tarikh penuaian paling ekonomik sebelum FCR jatuh mendatar, sekaligus memaksimumkan margin keuntungan bersih operasi fidlot.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <h3 class="text-xs font-bold text-emerald-400 uppercase tracking-widest mb-3">Malaysian Data & Research Sources References</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div class="bg-[#0b1329] p-3 rounded border border-gray-800">
+                        <p class="text-white font-medium">✓ Department of Veterinary Services (DVS) Malaysia</p>
+                        <p class="text-gray-400 text-[11px] mt-1">Beef cattle performance data and feedlot management standards in Malaysia.</p>
+                        <a href="https://www.dvs.gov.my" target="_blank" class="text-emerald-400 text-[11px] underline block mt-1">dvs.gov.my - Malaysian Livestock Statistics</a>
+                    </div>
+                    <div class="bg-[#0b1329] p-3 rounded border border-gray-800">
+                        <p class="text-white font-medium">✓ MARDI (Malaysian Agricultural Research & Development Institute)</p>
+                        <p class="text-gray-400 text-[11px] mt-1">Research papers on nutritional trials (TMR formulations) for Kedah-Kelantan cross cattle clones.</p>
+                        <a href="https://www.mardi.gov.my" target="_blank" class="text-emerald-400 text-[11px] underline block mt-1">mardi.gov.my - Livestock Research Portfolio</a>
+                    </div>
+                    <div class="bg-[#0b1329] p-3 rounded border border-gray-800">
+                        <p class="text-white font-medium">✓ Federation of Livestock Farmers' Associations of Malaysia (FLFAM)</p>
+                        <p class="text-gray-400 text-[11px] mt-1">Industrial data regarding commercial feed component market prices and trends in Peninsular Malaysia.</p>
+                        <a href="https://www.flfam.org.my" target="_blank" class="text-emerald-400 text-[11px] underline block mt-1">flfam.org.my - Industry Cost Reports</a>
+                    </div>
+                    <div class="bg-[#0b1329] p-3 rounded border border-gray-800">
+                        <p class="text-white font-medium">✓ Malaysian Society of Animal Production (MSAP)</p>
+                        <p class="text-gray-400 text-[11px] mt-1">Growth modeling metrics and sigmoidal curve parameters ($W_{max}$ & genetic $k$) for tropical crossbreeds.</p>
+                        <span class="text-gray-500 text-[11px] block mt-1">msap.my - Scientific Proceedings</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center text-xs text-gray-600 mt-8 mb-4">
+            &copy; 2026 Beef Cattle Growth Derivative Simulator | SFH: Animal Husbandry Technology Resource Portal
+        </footer>
+    </div>
+
+    <script>
+        const beta = 12; 
+        
+        const daySlider = document.getElementById('daySlider');
+        const dayValue = document.getElementById('dayValue');
+        const weightVal = document.getElementById('weightVal');
+        const adgVal = document.getElementById('adgVal');
+        const phaseVal = document.getElementById('phaseVal');
+        const laymanText = document.getElementById('laymanText');
+
+        const wmaxSlider = document.getElementById('wmaxSlider');
+        const kSlider = document.getElementById('kSlider');
+        const etaSlider = document.getElementById('etaSlider');
+        const wmaxLabel = document.getElementById('wmaxLabel');
+        const kLabel = document.getElementById('kLabel');
+        const etaLabel = document.getElementById('etaLabel');
+
+        let chart;
+
+        function calculateGrowth(x, W_max, k, eta) {
+            const expTerm = Math.exp(-k * eta * x);
+            return W_max / (1 + beta * expTerm);
+        }
+
+        function calculateDerivative(x, W_max, k, eta) {
+            const r = k * eta;
+            const expTerm = Math.exp(-r * x);
+            const numerator = W_max * beta * r * expTerm;
+            const denominator = Math.pow(1 + beta * expTerm, 2);
+            return numerator / denominator;
+        }
+
+        function generateChartData() {
+            const days = [];
+            const weights = [];
+            const adgs = [];
+            
+            const W_max = parseFloat(wmaxSlider.value);
+            const k = parseFloat(kSlider.value);
+            const eta = parseFloat(etaSlider.value);
+
+            for (let d = 0; d <= 180; d += 5) {
+                days.push(d);
+                weights.push(calculateGrowth(d, W_max, k, eta).toFixed(1));
+                adgs.push((calculateDerivative(d, W_max, k, eta) * 10).toFixed(2)); 
+            }
+            return { days, weights, adgs };
+        }
+
+        function updateMetrics() {
+            const x = parseInt(daySlider.value);
+            const W_max = parseFloat(wmaxSlider.value);
+            const k = parseFloat(kSlider.value);
+            const eta = parseFloat(etaSlider.value);
+
+            dayValue.innerText = x;
+            wmaxLabel.innerText = W_max;
+            kLabel.innerText = k.toFixed(3);
+            etaLabel.innerText = eta.toFixed(2);
+
+            const f_x = calculateGrowth(x, W_max, k, eta);
+            const fPrime_x = calculateDerivative(x, W_max, k, eta);
+
+            weightVal.innerText = f_x.toFixed(1);
+            adgVal.innerText = fPrime_x.toFixed(2);
+
+            const r = k * eta;
+            const peakDay = Math.round(Math.log(beta) / r);
+
+            if (x < peakDay - 20) {
+                phaseVal.innerText = "Starter / Adaptation";
+                laymanText.innerHTML = `Lembu berada di fasa adaptasi fidlot. Kadar tumbesaran (ADG) baru meningkat secara eksponen ke <strong>${fPrime_x.toFixed(2)} kg/hari</strong>. Fokuskan makanan jenis 'starter' tinggi protein kasar untuk menyokong perkembangan tisu otot awal. Pastikan pengudaraan rumah ternakan bersih.`;
+            } else if (x >= peakDay - 20 && x <= peakDay + 20) {
+                phaseVal.innerText = "Peak Growth Phase";
+                laymanText.innerHTML = `<strong>Kadar pertumbuhan maksima dikesan!</strong> Lembu membesar pada kelajuan puncak sekitar <strong>${fPrime_x.toFixed(2)} kg/hari</strong>. Ini adalah titik infleksi matematik (kecerunan paling curam). FCR berada pada tahap terbaik. Pastikan catuan makanan (TMR) bertenaga tinggi dan dedak diberikan tanpa gangguan untuk mengekalkan momentum ini.`;
+            } else {
+                phaseVal.innerText = "Finishing / Plateau";
+                laymanText.innerHTML = `Kadar pertumbuhan mula mendatar (ADG menyusut ke <strong>${fPrime_x.toFixed(2)} kg/hari</strong>) kerana berat lembu menghampiri had matang genetik ($W_{max}$). Kos makanan berbanding penambahan daging di fasa ini tidak lagi ekonomi. <strong>Tindakan Husbandry:</strong> Sedia untuk dijadualkan bagi jualan atau penyembelihan bagi mengelakkan kerugian FCR.`;
+            }
+        }
+
+        function initChart() {
+            const data = generateChartData();
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.days,
+                    datasets: [
+                        {
+                            label: 'Weight f(x) (kg)',
+                            data: data.weights,
+                            borderColor: '#818cf8',
+                            backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                            yAxisID: 'y',
+                            tension: 0.3
+                        },
+                        {
+                            label: 'ADG f\'(x) (kg/day x10)',
+                            data: data.adgs,
+                            borderColor: '#34d399',
+                            backgroundColor: 'transparent',
+                            yAxisID: 'y1',
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { labels: { color: '#9ca3af' } }
+                    },
+                    scales: {
+                        x: { grid: { color: '#1e293b' }, ticks: { color: '#9ca3af' } },
+                        y: { position: 'left', grid: { color: '#1e293b' }, ticks: { color: '#9ca3af' } },
+                        y1: { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#9ca3af' } }
+                    },
+                    onClick: (e) => {
+                        const points = chart.getElementsAtEventForMode(e, 'nearest', { intersect: true }, true);
+                        if (points.length > 0) {
+                            const index = points[0].index;
+                            const clickedDay = chart.data.labels[index];
+                            daySlider.value = clickedDay;
+                            updateMetrics();
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateChartData() {
+            const data = generateChartData();
+            chart.data.labels = data.days;
+            chart.data.datasets[0].data = data.weights;
+            chart.data.datasets[1].data = data.adgs;
+            chart.update();
+        }
+
+        daySlider.addEventListener('input', updateMetrics);
+        wmaxSlider.addEventListener('input', () => { updateMetrics(); updateChartData(); });
+        kSlider.addEventListener('input', () => { updateMetrics(); updateChartData(); });
+        etaSlider.addEventListener('input', () => { updateMetrics(); updateChartData(); });
+
+        initChart();
+        updateMetrics();
+    </script>
+</body>
+</html>
